@@ -1,0 +1,10 @@
+# Build artifacts and generated platform runners from the example app —
+# only its source is useful on pub.dev.
+build/
+example/build/
+example/.dart_tool/
+example/macos/
+example/web/
+example/ios/
+example/.metadata
+flutter_01.log
