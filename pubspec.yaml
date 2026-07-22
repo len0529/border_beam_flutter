@@ -3,7 +3,7 @@ description: >-
   Animated border beam effect for Flutter. A lightweight widget that adds a
   traveling or breathing glow animation around any element — cards, buttons,
   inputs, or search bars. A port of Jakub Antalik's border-beam React package.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/len0529/border_beam_flutter
 repository: https://github.com/len0529/border_beam_flutter
 issue_tracker: https://github.com/len0529/border_beam_flutter/issues

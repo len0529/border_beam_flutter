@@ -13,7 +13,7 @@ its gradients, masks, and motion.
 
 ```yaml
 dependencies:
-  border_beam_flutter: ^1.0.0
+  border_beam_flutter: ^1.0.1
 ```
 
 ## Quick start

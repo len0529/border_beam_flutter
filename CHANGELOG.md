@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1
+
+- `customColors`: bring your own palette — colors are distributed cyclically
+  over the gradient slots and rendered as supplied (hue-shift disabled).
+- Oversized `borderRadius` values are clamped to the box, so `999` produces
+  a stadium/pill shape (matching CSS behavior).
+- Blur filters use `TileMode.decal` for CSS-accurate edge behavior.
+
 ## 1.0.0
 
 Initial release — a Flutter port of
@@ -7,9 +15,7 @@ Initial release — a Flutter port of
 (visual parity with its v1.3.0).
 
 - All five types: `sm`, `md`, `line`, `pulse-inner`, `pulse-outside`
-- Four color variants: `colorful`, `mono`, `ocean`, `sunset` — plus
-  `customColors` for arbitrary palettes
-- Oversized `borderRadius` values are clamped to the box (pill shapes work)
+- Four color variants: `colorful`, `mono`, `ocean`, `sunset`
 - Dark / light / auto themes, `strength`, `duration`, `active` with fade
   in/out callbacks, hue-shift controls, and the pulse consumer tuning hooks
   (`glowBoost`, `coreBlur`, `bloomBlur`, `glowBrightness`, `glowSaturation`,
