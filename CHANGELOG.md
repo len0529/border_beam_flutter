@@ -7,7 +7,9 @@ Initial release — a Flutter port of
 (visual parity with its v1.3.0).
 
 - All five types: `sm`, `md`, `line`, `pulse-inner`, `pulse-outside`
-- Four color variants: `colorful`, `mono`, `ocean`, `sunset`
+- Four color variants: `colorful`, `mono`, `ocean`, `sunset` — plus
+  `customColors` for arbitrary palettes
+- Oversized `borderRadius` values are clamped to the box (pill shapes work)
 - Dark / light / auto themes, `strength`, `duration`, `active` with fade
   in/out callbacks, hue-shift controls, and the pulse consumer tuning hooks
   (`glowBoost`, `coreBlur`, `bloomBlur`, `glowBrightness`, `glowSaturation`,

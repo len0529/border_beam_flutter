@@ -194,3 +194,8 @@ double pingPongHue(double t01, double range, {Curve curve = Curves.easeInOut}) {
   final p = t01 < 0.5 ? t01 * 2 : 2 - t01 * 2;
   return -range + 2 * range * curve.transform(p);
 }
+
+/// CSS clamps oversized border radii to the box; RRect does not, so clamp.
+/// Passing e.g. 999 yields a stadium/pill shape, like on the web.
+double clampRadius(double radius, Size size) =>
+    math.min(radius, size.shortestSide / 2);

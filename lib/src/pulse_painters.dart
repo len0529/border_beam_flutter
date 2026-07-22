@@ -58,7 +58,7 @@ void _pulseBlob(
     y * box.height + v.by[r],
     w * v.bw[r] * sx * boost,
     h * v.bh[r] * v.bgh * sy * boost,
-    color.withOpacity(v.bop[quad]!.clamp(0.0, 1.0)),
+    color.withValues(alpha: v.bop[quad]!.clamp(0.0, 1.0)),
   );
 }
 
@@ -85,10 +85,10 @@ class PulseInnerPainter extends CustomPainter {
 
     final v = bank.sample(time.value);
     final rect = Offset.zero & size;
-    final rrect =
-        RRect.fromRectAndRadius(rect, Radius.circular(c.borderRadius));
-    final ring = ringPath(rect, c.borderRadius, c.borderWidth);
-    final border = colorPalettes[c.colorVariant]!.border;
+    final radius = clampRadius(c.borderRadius, size);
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+    final ring = ringPath(rect, radius, c.borderWidth);
+    final border = c.palettes.border.border;
 
     final filter = beamColorFilter(
       hueDegrees: c.staticColors ? 0 : c.hueBase + v.hueDeg,
@@ -114,7 +114,7 @@ class PulseInnerPainter extends CustomPainter {
       canvas.saveLayer(
         rect,
         Paint()
-          ..color = const Color(0xFFFFFFFF).withOpacity(innerOp)
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: innerOp)
           ..colorFilter = filter,
       );
       canvas.clipRRect(rrect);
@@ -130,7 +130,7 @@ class PulseInnerPainter extends CustomPainter {
       for (final corner in corners) {
         final q = corner[2] as PulseQuad;
         final a = (cornerAlpha * v.bop[q]!).clamp(0.0, 1.0);
-        final col = Color(0x00000000 | cornerColor).withOpacity(a);
+        final col = Color(0x00000000 | cornerColor).withValues(alpha: a);
         drawEllipse(
           canvas,
           rect,
@@ -161,7 +161,7 @@ class PulseInnerPainter extends CustomPainter {
       canvas.saveLayer(
         rect,
         Paint()
-          ..color = const Color(0xFFFFFFFF).withOpacity(strokeOp)
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: strokeOp)
           ..colorFilter = filter,
       );
       canvas.clipPath(ring);
@@ -193,15 +193,15 @@ class PulseInnerBloomPainter extends CustomPainter {
     final c = config;
     if (size.isEmpty) return;
     final rect = Offset.zero & size;
-    final ring = ringPath(rect, c.borderRadius, c.borderWidth);
+    final ring = ringPath(rect, clampRadius(c.borderRadius, size), c.borderWidth);
     canvas.save();
     canvas.clipPath(ring);
-    final border = colorPalettes[c.colorVariant]!.border;
+    final border = c.palettes.border.border;
     for (final e in pulseInnerBloom.reversed) {
       final g = border[e.ci];
       drawBlob(canvas, rect, g.px * size.width, g.py * size.height,
           e.w * c.glowBoost, e.h * c.glowBoost,
-          g.color.withOpacity(frozenAlpha));
+          g.color.withValues(alpha: frozenAlpha));
     }
     canvas.restore();
   }
@@ -233,8 +233,8 @@ class PulseOuterStrokePainter extends CustomPainter {
 
     final v = bank.sample(time.value);
     final rect = Offset.zero & size;
-    final ring = ringPath(rect, c.borderRadius, 1);
-    final border = colorPalettes[c.colorVariant]!.border;
+    final ring = ringPath(rect, clampRadius(c.borderRadius, size), 1);
+    final border = c.palettes.border.border;
     final scale = glowScale(size);
 
     final strokeOp = (fadeOp *
@@ -248,7 +248,7 @@ class PulseOuterStrokePainter extends CustomPainter {
     canvas.saveLayer(
       rect,
       Paint()
-        ..color = const Color(0xFFFFFFFF).withOpacity(strokeOp)
+        ..color = const Color(0xFFFFFFFF).withValues(alpha: strokeOp)
         ..colorFilter = beamColorFilter(
           hueDegrees: c.staticColors ? 0 : c.hueBase + v.hueDeg,
           brightness: c.brightness,
@@ -260,7 +260,7 @@ class PulseOuterStrokePainter extends CustomPainter {
     if (c.hairlineOpacity > 0) {
       final hairRGB = c.isDark ? const Color(0xFF464646) : const Color(0xFF000000);
       canvas.drawRect(
-          rect, Paint()..color = hairRGB.withOpacity(c.hairlineOpacity));
+          rect, Paint()..color = hairRGB.withValues(alpha: c.hairlineOpacity));
     }
     for (final e in pulseOuterCore.reversed) {
       final g = border[e.ci];
@@ -308,14 +308,14 @@ class PulseOuterCorePainter extends CustomPainter {
 
     final box = Size(size.width + 20, size.height + 20);
     final rect = Rect.fromLTWH(-10, -10, box.width, box.height);
-    final border = colorPalettes[c.colorVariant]!.border;
+    final border = c.palettes.border.border;
     final scale = glowScale(size);
     final coreBlur = c.coreBlur ?? (c.isDark ? 3.0 : 6.0);
 
     canvas.saveLayer(
       rect.inflate(coreBlur * 3 + 40),
       Paint()
-        ..color = const Color(0xFFFFFFFF).withOpacity(innerOp)
+        ..color = const Color(0xFFFFFFFF).withValues(alpha: innerOp)
         ..imageFilter = ui.ImageFilter.blur(sigmaX: coreBlur, sigmaY: coreBlur)
         ..colorFilter = beamColorFilter(
           hueDegrees: c.staticColors ? 0 : c.hueBase + v.hueDeg,
@@ -338,7 +338,7 @@ class PulseOuterCorePainter extends CustomPainter {
         rect.top + (e.y ?? g.py) * box.height + v.by[r],
         e.w * v.bw[r] * scale.dx * c.glowBoost,
         e.h * v.bh[r] * v.bgh * scale.dy * c.glowBoost,
-        g.color.withOpacity(v.bop[e.quad]!.clamp(0.0, 1.0)),
+        g.color.withValues(alpha: v.bop[e.quad]!.clamp(0.0, 1.0)),
       );
     }
     canvas.restore();
@@ -363,7 +363,7 @@ class PulseOuterBloomPainter extends CustomPainter {
     if (size.isEmpty) return;
     final box = Size(size.width + 60, size.height + 60);
     final rect = Rect.fromLTWH(-30, -30, box.width, box.height);
-    final border = colorPalettes[c.colorVariant]!.border;
+    final border = c.palettes.border.border;
     final scale = glowScale(size);
 
     canvas.save();
@@ -380,7 +380,7 @@ class PulseOuterBloomPainter extends CustomPainter {
         rect.top + (e.y ?? g.py) * box.height,
         e.w * scale.dx * c.glowBoost,
         e.h * scale.dy * c.glowBoost,
-        g.color.withOpacity(frozenAlpha),
+        g.color.withValues(alpha: frozenAlpha),
       );
     }
     canvas.restore();

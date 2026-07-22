@@ -148,7 +148,7 @@ class _DemoAppState extends State<DemoApp> {
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: subtle.withOpacity(0.2)),
+                  border: Border.all(color: subtle.withValues(alpha: 0.2)),
                 ),
                 child: Icon(Icons.stop_rounded, color: subtle, size: 20),
               ),
@@ -168,7 +168,7 @@ class _DemoAppState extends State<DemoApp> {
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: subtle.withOpacity(0.2)),
+                  border: Border.all(color: subtle.withValues(alpha: 0.2)),
                 ),
                 child: Row(
                   children: [
@@ -247,7 +247,7 @@ class _DemoAppState extends State<DemoApp> {
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: subtle.withOpacity(0.3)),
+                  border: Border.all(color: subtle.withValues(alpha: 0.3)),
                 ),
                 child: Text('Subscribe',
                     style:
@@ -279,7 +279,7 @@ class _DemoAppState extends State<DemoApp> {
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: subtle.withOpacity(0.15)),
+        border: Border.all(color: subtle.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,7 +306,7 @@ class _DemoAppState extends State<DemoApp> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        border: Border.all(color: subtle.withOpacity(0.3)),
+        border: Border.all(color: subtle.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(label, style: TextStyle(color: subtle, fontSize: 12)),

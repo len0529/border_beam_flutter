@@ -34,8 +34,8 @@ const _spike2 = [
   [0.0, 1.2], [0.25, 0.7], [0.5, 1.4], [0.75, 0.8], [1.0, 1.2],
 ];
 
-Color _alpha(Color c, double a) => c.withOpacity(a);
-Color _attenuate(Color c, double f) => c.withOpacity(c.opacity * f);
+Color _alpha(Color c, double a) => c.withValues(alpha: a);
+Color _attenuate(Color c, double f) => c.withValues(alpha: c.opacity * f);
 
 class LineBeamPainter extends CustomPainter {
   LineBeamPainter({
@@ -75,9 +75,9 @@ class LineBeamPainter extends CustomPainter {
     final hue = c.hueBase + pingPongHue(t / 12 % 1, c.hueRange);
     final bloomHue = c.hueBase + pingPongHue(t / 8 % 1, c.hueRange + 10);
 
-    final rrect =
-        RRect.fromRectAndRadius(rect, Radius.circular(c.borderRadius));
-    final ring = ringPath(rect, c.borderRadius, c.borderWidth);
+    final radius = clampRadius(c.borderRadius, size);
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+    final ring = ringPath(rect, radius, c.borderWidth);
     final beamX = x * w;
 
     final strokeOp =
@@ -120,11 +120,11 @@ class LineBeamPainter extends CustomPainter {
       canvas.saveLayer(
         rect,
         Paint()
-          ..color = const Color(0xFFFFFFFF).withOpacity(innerOp)
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: innerOp)
           ..colorFilter = layerFilter,
       );
       canvas.clipRRect(rrect);
-      final inner = lineInnerGradientData[c.colorVariant]!;
+      final inner = config.palettes.lineInner;
       for (final g in inner.reversed) {
         drawBlob(canvas, rect, beamX + g.offsetX, h - g.offsetY.abs(),
             g.sizeW * bw, g.sizeH * bh, g.color);
@@ -146,11 +146,11 @@ class LineBeamPainter extends CustomPainter {
       canvas.saveLayer(
         rect,
         Paint()
-          ..color = const Color(0xFFFFFFFF).withOpacity(strokeOp)
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: strokeOp)
           ..colorFilter = layerFilter,
       );
       canvas.clipPath(ring);
-      final palette = lineColorPalettes[c.colorVariant]!;
+      final palette = config.palettes.line;
       final blobs = c.isDark ? palette.dark : palette.light;
       for (final g in blobs.reversed) {
         drawBlob(canvas, rect, beamX + g.offsetX, h + g.offsetY,
@@ -179,12 +179,14 @@ class LineBeamPainter extends CustomPainter {
     // ── z3: spiky bloom ────────────────────────────────────────────────────
     if (bloomOp > 0) {
       final bloomPaint = Paint()
-        ..color = const Color(0xFFFFFFFF).withOpacity(bloomOp);
+        ..color = const Color(0xFFFFFFFF).withValues(alpha: bloomOp);
       if (c.isMono) {
-        bloomPaint.imageFilter = ui.ImageFilter.blur(sigmaX: 6, sigmaY: 6);
+        bloomPaint.imageFilter = ui.ImageFilter.blur(
+            sigmaX: 6, sigmaY: 6, tileMode: TileMode.decal);
       } else if (!c.staticColors) {
         bloomPaint
-          ..imageFilter = ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8)
+          ..imageFilter = ui.ImageFilter.blur(
+              sigmaX: 8, sigmaY: 8, tileMode: TileMode.decal)
           ..colorFilter = beamColorFilter(
               hueDegrees: bloomHue,
               brightness: c.brightness,
@@ -219,9 +221,9 @@ class LineBeamPainter extends CustomPainter {
     final c = config;
     final w = rect.width;
     final h = rect.height;
-    final palette = colorPalettes[c.colorVariant]!;
+    final palette = config.palettes.border;
     final spikeColors = c.isDark ? palette.spike : palette.spikeLt;
-    final bloomPalette = lineBloomColors[c.colorVariant]!;
+    final bloomPalette = config.palettes.lineBloom;
     final bloomData = c.isDark ? bloomPalette.dark : bloomPalette.light;
     final isMono = c.isMono;
 

@@ -669,3 +669,84 @@ const List<PulseGradientDef> pulseOuterBloom = [
   PulseGradientDef(1, 3, PulseQuad.bl, 88, 32, 0.24, 0.99),
   PulseGradientDef(2, 1, PulseQuad.bl, 28, 58, 0.0, 0.6),
 ];
+
+// ── Palette resolution (built-in variants + custom colors) ──────────────────
+
+/// Bundle of every palette table the painters need, resolved for one variant
+/// (or generated from custom colors).
+class BeamPalettes {
+  const BeamPalettes({
+    required this.border,
+    required this.small,
+    required this.line,
+    required this.lineInner,
+    required this.lineBloom,
+  });
+
+  final ColorPalette border;
+  final SmallPalette small;
+  final LinePalette line;
+  final List<LineBlob> lineInner;
+  final LineBloomPalette lineBloom;
+}
+
+/// Resolves the palette bundle for [variant], or generates one from
+/// [customColors] when provided (non-null and non-empty).
+BeamPalettes resolvePalettes(
+    BorderBeamColorVariant variant, List<Color>? customColors) {
+  if (customColors != null && customColors.isNotEmpty) {
+    return customPalettes(customColors);
+  }
+  return BeamPalettes(
+    border: colorPalettes[variant]!,
+    small: smallColorPalettes[variant]!,
+    line: lineColorPalettes[variant]!,
+    lineInner: lineInnerGradientData[variant]!,
+    lineBloom: lineBloomColors[variant]!,
+  );
+}
+
+/// Generates palettes from user-supplied colors, distributed cyclically over
+/// the gradient slots of the `colorful` tables. Geometry and per-slot alphas
+/// are preserved; only the RGB changes, so the layered depth of the original
+/// effect carries over to any color set.
+BeamPalettes customPalettes(List<Color> colors) {
+  Color at(int i, Color original) {
+    final c = colors[i % colors.length];
+    return c.withValues(alpha: original.opacity);
+  }
+
+  const v = BorderBeamColorVariant.colorful;
+  final border = colorPalettes[v]!;
+  final small = smallColorPalettes[v]!;
+  final line = lineColorPalettes[v]!;
+  final lineInner = lineInnerGradientData[v]!;
+  final lineBloom = lineBloomColors[v]!;
+
+  List<GradientBlob> blobs(List<GradientBlob> src) => [
+        for (var i = 0; i < src.length; i++)
+          GradientBlob(
+              at(i, src[i].color), src[i].px, src[i].py, src[i].w, src[i].h),
+      ];
+  List<LineBlob> lineBlobs(List<LineBlob> src) => [
+        for (var i = 0; i < src.length; i++)
+          LineBlob(at(i, src[i].color), src[i].sizeW, src[i].sizeH,
+              src[i].offsetX, src[i].offsetY),
+      ];
+  LineBloomTheme bloomTheme(LineBloomTheme src) => LineBloomTheme([
+        for (var i = 0; i < src.spikes.length; i++)
+          BloomSpike(at(i, src.spikes[i].color1), at(i, src.spikes[i].color2)),
+      ]);
+
+  final spike =
+      SpikeColors(at(0, border.spike.primary), at(1, border.spike.secondary));
+  return BeamPalettes(
+    border: ColorPalette(
+        border: blobs(border.border), spike: spike, spikeLt: spike),
+    small: SmallPalette(border: blobs(small.border), inner: blobs(small.inner)),
+    line: LinePalette(dark: lineBlobs(line.dark), light: lineBlobs(line.light)),
+    lineInner: lineBlobs(lineInner),
+    lineBloom: LineBloomPalette(
+        dark: bloomTheme(lineBloom.dark), light: bloomTheme(lineBloom.light)),
+  );
+}

@@ -41,6 +41,20 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('customColors builds and renders', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BorderBeam(
+          customColors: const [Colors.teal, Colors.pink],
+          child: const SizedBox(width: 200, height: 100),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(find.byType(BorderBeam), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   test('pulse oscillators ping-pong within their range', () {
     final bank = PulseOscillatorBank(
       pulseParams(t.BorderBeamSize.pulseInner, true, 2.3),

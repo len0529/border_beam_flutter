@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'config.dart';
 import 'filters.dart';
 import 'line_painter.dart';
+import 'paint_utils.dart';
 import 'presets.dart';
 import 'pulse.dart';
 import 'pulse_painters.dart';
@@ -30,6 +31,7 @@ class BorderBeam extends StatefulWidget {
     required this.child,
     this.size = BorderBeamSize.md,
     this.colorVariant = BorderBeamColorVariant.colorful,
+    this.customColors,
     this.theme = BorderBeamTheme.dark,
     this.staticColors = false,
     this.duration,
@@ -60,6 +62,13 @@ class BorderBeam extends StatefulWidget {
 
   /// Color palette. Defaults to [BorderBeamColorVariant.colorful].
   final BorderBeamColorVariant colorVariant;
+
+  /// Custom colors for the beam. When provided (non-empty), they override
+  /// [colorVariant]: the colors are distributed cyclically over the gradient
+  /// slots of the effect, so any number of colors (one or more) works.
+  /// Custom colors are rendered as supplied — the hue-shift animation of the
+  /// built-in palettes is disabled.
+  final List<Color>? customColors;
 
   /// Theme mode — adapts beam/glow colors for dark or light backgrounds.
   /// [BorderBeamTheme.auto] follows the platform brightness.
@@ -136,6 +145,9 @@ class _BorderBeamState extends State<BorderBeam>
 
   PulseOscillatorBank? _bank;
   int _bankKey = 0;
+  BeamPalettes? _palettes;
+  BorderBeamColorVariant? _palettesVariant;
+  List<Color>? _palettesCustom;
 
   bool get _isPulse =>
       widget.size == BorderBeamSize.pulseInner ||
@@ -199,6 +211,18 @@ class _BorderBeamState extends State<BorderBeam>
     super.dispose();
   }
 
+  BeamPalettes _obtainPalettes() {
+    final custom = widget.customColors;
+    if (_palettes == null ||
+        _palettesVariant != widget.colorVariant ||
+        !listEquals(_palettesCustom, custom)) {
+      _palettes = resolvePalettes(widget.colorVariant, custom);
+      _palettesVariant = widget.colorVariant;
+      _palettesCustom = custom == null ? null : List.of(custom);
+    }
+    return _palettes!;
+  }
+
   PulseOscillatorBank _obtainBank(
       BorderBeamSize size, bool isDark, double duration, bool staticColors) {
     final key = Object.hash(size, isDark, duration, staticColors);
@@ -229,14 +253,17 @@ class _BorderBeamState extends State<BorderBeam>
     final tc = sizeThemePresets[size]![themeMode]!;
     final sc = sizePresets[size]!;
 
-    final staticColors =
-        widget.colorVariant == BorderBeamColorVariant.mono ||
-            widget.staticColors;
+    final hasCustomColors =
+        widget.customColors != null && widget.customColors!.isNotEmpty;
+    final staticColors = widget.colorVariant == BorderBeamColorVariant.mono ||
+        hasCustomColors ||
+        widget.staticColors;
     final duration =
         widget.duration ?? (isLine ? 3.1 : (isPulse ? 2.3 : 1.96));
 
     final config = BeamConfig(
       size: size,
+      palettes: _obtainPalettes(),
       colorVariant: widget.colorVariant,
       isDark: isDark,
       borderRadius: widget.borderRadius ?? sc.borderRadius,
@@ -324,9 +351,11 @@ class _BorderBeamState extends State<BorderBeam>
             // z3: frozen bloom, blurred + hue-rotated at composite time.
             Positioned.fill(
               child: IgnorePointer(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(config.borderRadius),
-                  child: _FilteredBloom(
+                child: LayoutBuilder(
+                  builder: (context, constraints) => ClipRRect(
+                    borderRadius: BorderRadius.circular(clampRadius(
+                        config.borderRadius, constraints.biggest)),
+                    child: _FilteredBloom(
                     config: config,
                     bank: bank,
                     time: _time,
@@ -334,9 +363,10 @@ class _BorderBeamState extends State<BorderBeam>
                     blurSigma: 8,
                     brightness: config.brightness,
                     saturation: config.saturation,
-                    painter: PulseInnerBloomPainter(
-                      config: config,
-                      frozenAlpha: frozenBloomAlpha(size, isDark, duration),
+                      painter: PulseInnerBloomPainter(
+                        config: config,
+                        frozenAlpha: frozenBloomAlpha(size, isDark, duration),
+                      ),
                     ),
                   ),
                 ),
@@ -443,7 +473,8 @@ class _FilteredBloom extends StatelessWidget {
       child: CustomPaint(painter: painter, child: const SizedBox.expand()),
     );
     content = ImageFiltered(
-      imageFilter: ui.ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+      imageFilter: ui.ImageFilter.blur(
+          sigmaX: blurSigma, sigmaY: blurSigma, tileMode: TileMode.decal),
       child: content,
     );
 

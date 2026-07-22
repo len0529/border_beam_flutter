@@ -35,7 +35,8 @@ BorderBeam(
 
 The widget wraps your content and overlays the animated beam effect. Pass
 `borderRadius` matching your child's radius (there is no DOM to auto-detect it
-from; it falls back to the size preset default).
+from; it falls back to the size preset default). Oversized radii are clamped
+to the box, so `borderRadius: 999` produces a stadium/pill shape.
 
 ## Types
 
@@ -77,6 +78,17 @@ BorderBeam(colorVariant: BorderBeamColorVariant.sunset,   child: c) // Orange-ye
 
 All variants except `mono` animate through a hue-shift cycle.
 
+Or bring your own colors — they are distributed cyclically over the gradient
+slots of the effect (any number of colors works) and rendered as supplied,
+with the hue-shift disabled:
+
+```dart
+BorderBeam(
+  customColors: const [Color(0xFF00E5A0), Color(0xFF7C4DFF)],
+  child: c,
+)
+```
+
 ## Theme
 
 ```dart
@@ -111,6 +123,7 @@ entirely once faded out.
 | `child` | `Widget` | — | Content to wrap |
 | `size` | `BorderBeamSize` | `md` | Size/type preset |
 | `colorVariant` | `BorderBeamColorVariant` | `colorful` | Color palette |
+| `customColors` | `List<Color>?` | — | Custom colors (overrides `colorVariant`) |
 | `theme` | `BorderBeamTheme` | `dark` | Background adaptation |
 | `strength` | `double` | `1` | Effect opacity (0–1), beam layers only |
 | `duration` | `double?` | `1.96` / `3.1` / `2.3` | Cycle duration in seconds (rotate / line / pulse) |

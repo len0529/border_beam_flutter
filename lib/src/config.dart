@@ -1,11 +1,13 @@
 import 'dart:ui' show Color;
 
+import 'presets.dart';
 import 'types.dart';
 
 /// Fully-resolved rendering configuration shared by every painter.
 class BeamConfig {
   const BeamConfig({
     required this.size,
+    required this.palettes,
     required this.colorVariant,
     required this.isDark,
     required this.borderRadius,
@@ -33,6 +35,9 @@ class BeamConfig {
   });
 
   final BorderBeamSize size;
+
+  /// Resolved palette bundle (built-in variant or generated custom colors).
+  final BeamPalettes palettes;
   final BorderBeamColorVariant colorVariant;
   final bool isDark;
   final double borderRadius;
@@ -69,6 +74,7 @@ class BeamConfig {
   bool operator ==(Object other) {
     return other is BeamConfig &&
         other.size == size &&
+        identical(other.palettes, palettes) &&
         other.colorVariant == colorVariant &&
         other.isDark == isDark &&
         other.borderRadius == borderRadius &&
@@ -97,7 +103,7 @@ class BeamConfig {
 
   @override
   int get hashCode => Object.hashAll([
-        size, colorVariant, isDark, borderRadius, borderWidth, duration,
+        size, identityHashCode(palettes), colorVariant, isDark, borderRadius, borderWidth, duration,
         strokeOpacity, innerOpacity, bloomOpacity, innerShadow, brightness,
         saturation, hueRange, staticColors, strength, hairlineOpacity,
         strokeOpacityFactor, innerOpacityFactor, bloomOpacityFactor, glowBoost,

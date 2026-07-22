@@ -9,7 +9,6 @@ import 'package:flutter/rendering.dart';
 import 'config.dart';
 import 'filters.dart';
 import 'paint_utils.dart';
-import 'presets.dart';
 import 'types.dart';
 
 /// White traveling-beam conic gradient stops (dark theme).
@@ -112,9 +111,9 @@ class RotateBeamPainter extends CustomPainter {
         ? c.hueBase
         : c.hueBase + pingPongHue(t / 12 % 1, c.hueRange);
 
-    final rrect =
-        RRect.fromRectAndRadius(rect, Radius.circular(c.borderRadius));
-    final ring = ringPath(rect, c.borderRadius, c.borderWidth);
+    final radius = clampRadius(c.borderRadius, size);
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+    final ring = ringPath(rect, radius, c.borderWidth);
     final isSm = c.size == BorderBeamSize.sm;
 
     final strokeOp = (fadeOp *
@@ -150,12 +149,12 @@ class RotateBeamPainter extends CustomPainter {
       canvas.saveLayer(
         rect,
         Paint()
-          ..color = const Color(0xFFFFFFFF).withOpacity(innerOp)
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: innerOp)
           ..colorFilter = layerFilter,
       );
       canvas.clipRRect(rrect);
       if (isSm) {
-        final inner = smallColorPalettes[c.colorVariant]!.inner;
+        final inner = c.palettes.small.inner;
         for (final g in inner.reversed) {
           drawBlob(canvas, rect, g.px * size.width, g.py * size.height, g.w,
               g.h, g.color);
@@ -165,7 +164,7 @@ class RotateBeamPainter extends CustomPainter {
         // md inner gradients: palette colors at 0.45 alpha (0.225 for mono),
         // sizes shrunk to 90%.
         final baseOpacity = c.isMono ? 0.225 : 0.45;
-        final border = colorPalettes[c.colorVariant]!.border;
+        final border = c.palettes.border.border;
         for (final g in border.reversed) {
           drawBlob(
             canvas,
@@ -174,7 +173,7 @@ class RotateBeamPainter extends CustomPainter {
             g.py * size.height,
             (g.w * 0.9).roundToDouble(),
             (g.h * 0.9).roundToDouble(),
-            g.color.withOpacity(baseOpacity),
+            g.color.withValues(alpha: baseOpacity),
           );
         }
         drawInnerShadow(canvas, rrect, 9, 1, c.innerShadow);
@@ -199,13 +198,12 @@ class RotateBeamPainter extends CustomPainter {
       canvas.saveLayer(
         rect,
         Paint()
-          ..color = const Color(0xFFFFFFFF).withOpacity(strokeOp)
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: strokeOp)
           ..colorFilter = layerFilter,
       );
       canvas.clipPath(ring);
-      final border = isSm
-          ? smallColorPalettes[c.colorVariant]!.border
-          : colorPalettes[c.colorVariant]!.border;
+      final border =
+          isSm ? c.palettes.small.border : c.palettes.border.border;
       for (final g in border.reversed) {
         drawBlob(canvas, rect, g.px * size.width, g.py * size.height, g.w, g.h,
             g.color);
@@ -224,8 +222,9 @@ class RotateBeamPainter extends CustomPainter {
       canvas.saveLayer(
         rect.inflate(24),
         Paint()
-          ..color = const Color(0xFFFFFFFF).withOpacity(bloomOp)
-          ..imageFilter = ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8)
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: bloomOp)
+          ..imageFilter = ui.ImageFilter.blur(
+              sigmaX: 8, sigmaY: 8, tileMode: TileMode.decal)
           ..colorFilter = beamColorFilter(
               hueDegrees: 0,
               brightness: c.brightness,
