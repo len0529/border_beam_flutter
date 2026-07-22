@@ -4,9 +4,9 @@ description: >-
   traveling or breathing glow animation around any element — cards, buttons,
   inputs, or search bars. A port of Jakub Antalik's border-beam React package.
 version: 1.0.0
-homepage: https://beam.jakubantalik.com
-repository: https://github.com/Jakubantalik/border-beam
-issue_tracker: https://github.com/Jakubantalik/border-beam/issues
+homepage: https://github.com/len0529/border_beam_flutter
+repository: https://github.com/len0529/border_beam_flutter
+issue_tracker: https://github.com/len0529/border_beam_flutter/issues
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
